@@ -74,26 +74,34 @@
          try {
              // Save the file
              final Part filePart = req.getPart("file");
-             String fileName = MultiPartFileUtils.getFileName(filePart);
-             if (StringUtils.isBlank(fileName)) {
-                 doGet(req, res);
-                 return;
-             } else if (!isImageFile(fileName)) {
+@@ -71,5 +73,17 @@
+-            String fileName = MultiPartFileUtils.getFileName(filePart);
+-            if (StringUtils.isBlank(fileName)) {
+-                doGet(req, res);
+-                return;
+-            } else if (!isImageFile(fileName)) {
++              String fileName = MultiPartFileUtils.getFileName(filePart);
++              if (StringUtils.isBlank(fileName)) {
++                  doGet(req, res);
++                  return;
++              } else if (!isImageFile(fileName)) {
++                  req.setAttribute("errorMessage", getErrMsg("msg.not.image.file", locale));
++              } else {
++                  String fullPath = savePath + File.separator + fileName;
++                  File file = new File(fullPath);
++                  String normalizedPath = file.getCanonicalPath();
++                  if (!normalizedPath.startsWith(new File(savePath).getCanonicalPath())) {
++                      req.setAttribute("errorMessage", "Error: Attempt to access file outside of the base directory.");
++                      doGet(req, res);
++                      return;
++                  }
++              }
++
                  req.setAttribute("errorMessage", getErrMsg("msg.not.image.file", locale));
                  doGet(req, res);
                  return;
              }
-@@ -80,1 +82,9 @@
--            boolean isConverted = MultiPartFileUtils.writeFile(filePart, savePath, fileName);
-+              boolean isConverted = MultiPartFileUtils.writeFile(filePart, savePath, fileName);
-+              String fullPath = savePath + File.separator + fileName;
-+              String normalizedPath = new File(fullPath).getCanonicalPath();
-+              if (!normalizedPath.startsWith(new File(savePath).getCanonicalPath())) {
-+                  req.setAttribute("errorMessage", "Error: Attempt to write file outside of the base directory.");
-+                  doGet(req, res);
-+                  return;
-+              }
-+
+             boolean isConverted = MultiPartFileUtils.writeFile(filePart, savePath, fileName);
  
              // Reverse the color of the upload image
              if (!isConverted) {
